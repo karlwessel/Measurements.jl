@@ -15,7 +15,7 @@
 #
 ### Code:
 
-export stdscore, weightedmean
+export stdscore, weightedmean, meaningful
 using LinearAlgebra
 
 # Standard Score
@@ -111,3 +111,26 @@ function uncertainty_components(x::Measurement{T}) where {T<:AbstractFloat}
     end
     return out
 end
+
+"""
+    meaningful(a::Measurement)
+
+Return the passed measurement rounded to meaningful digits.
+
+Uncertainty is rounded up to two significand digits.
+Value is rounded to the same two digits as the uncertainty.
+
+A Measurement with no uncertainty is unchanged.
+"""
+function meaningful(a::Measurement)
+    if a.err == 0
+        return a
+    end
+    e = ceil(a.err,sigdigits=2)
+    b=Int(floor(log10(e)))-1
+    v = round(a.val,digits=-b)
+    v±e
+end
+
+meaningful(a::Complex{Measurement{T}}) where {T} =
+    meaningful(real(a))+im*meaningful(imag(a))

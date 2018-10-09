@@ -24,6 +24,34 @@ x = 3 ± 0.1
 y = 4 ± 0.2
 z = complex(x)
 
+@testset "meaningful" begin
+    @test meaningful(w) == -0.5 ± 0.03
+    @test meaningful(x) == 3 ± 0.1
+    @test meaningful(y) == 4 ± 0.2
+    @test meaningful(z) == meaningful(x)
+
+    # test rounding up of uncertainty
+    @test meaningful(0.5 ± 0.00100001) == 0.5 ± 0.0011
+    @test meaningful(0.5 ± 0.00109999) == 0.5 ± 0.0011
+    @test meaningful(0.5 ± 0.009900001) == 0.5 ± 0.01
+    @test meaningful(0.5 ± 10000.00100001) == 0.0 ± 11000
+    @test meaningful(0.5 ± 10999) == 0.0 ± 11000
+    @test meaningful(0.5 ± 99001) == 0.0 ± 100000
+
+    # test rounding of value
+    @test meaningful(0.5 ± 1.1) == 0.5 ± 1.1
+    @test meaningful(0.5 ± 0.1) == 0.5 ± 0.1
+    @test meaningful(0.5 ± 0.01) == 0.5 ± 0.01
+    @test meaningful(0.5001 ± 11) == 1.0 ± 11
+    # we don't make any assumption about behavious of 0.5 rounding
+    @test meaningful(0.4999 ± 11) == 0.0 ± 11
+    @test meaningful(0.5 ± 110) == 0.0 ± 110
+    @test meaningful(0.9999 ± 99.1) == 0.0 ± 100
+
+    # test complex rounding
+    @test meaningful(0.5 ± 1.1 + im*(0.5 ± 0.1)) == 0.5 ± 1.1 + im*(0.5 ± 0.1)
+end
+
 @testset "Standard Score" begin
     @test stdscore(w, x.val) ≈ -350/3
     @test stdscore(x, y) ≈ -4.472135954999579
